@@ -35,5 +35,21 @@ const model = 'vendor/pose_landmarker_lite.task';
 if (!fs.existsSync(model)) throw new Error('Posemodel ontbreekt: ' + model);
 fs.copyFileSync(model, path.join(vendor, 'pose_landmarker_lite.task'));
 fs.writeFileSync(path.join(out, 'index.html'), html);
+// De GitHub Pages publicatie gebruikt uitsluitend dist/. Publiceer de
+// aparte trackerpagina en de drie bijbehorende lokale testbestanden expliciet.
+const publicFiles = [
+  'tracking-test.html',
+  'tests/vergelijk_trackers.py',
+  'tests/start_windows.bat',
+  'tests/LEESMIJ.md',
+];
+for (const file of publicFiles) {
+  if (!fs.existsSync(file)) throw new Error('Publiek testbestand ontbreekt: ' + file);
+  const target = path.join(out, file);
+  fs.mkdirSync(path.dirname(target), { recursive: true });
+  fs.copyFileSync(file, target);
+  console.log('Publiceer extra pagina/bestand:', file);
+}
+
 fs.writeFileSync(path.join(out, '.nojekyll'), 'GitHub Pages static files\n');
 console.log('Website gebouwd in dist/.');
