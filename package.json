@@ -1,0 +1,1 @@
+{"name":"vtv-acro-jurycoach","private":true,"version":"119.0.0","description":"VTV Acro Jurycoach GitHub Pages","scripts":{"build":"node scripts/build.mjs"},"dependencies":{"@mediapipe/tasks-vision":"0.10.22"}}
