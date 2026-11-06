@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="nl"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>VTV Acro Jurycoach | Trackervergelijking</title>
+<style>
+:root{font-family:system-ui,Segoe UI,sans-serif;color:#173248;background:#f3f7fb}*{box-sizing:border-box}
+body{margin:0}header{background:#0e2743;color:white;padding:18px max(20px,calc((100vw - 1050px)/2))}
+header a{color:#d3e9ff}main{max-width:1050px;margin:22px auto;padding:0 18px}h1{font-size:clamp(25px,4vw,35px);margin:0 0 6px}
+h2{font-size:21px;margin-top:8px}.sub{color:#527084}.panel{padding:23px;background:white;border:1px solid #d7e3ed;border-radius:15px;margin-bottom:17px}
+.pills{display:flex;flex-wrap:wrap;gap:8px}.pill{border-radius:999px;padding:6px 10px;background:#e6eef6;color:#234964;font-size:13px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(235px,1fr));gap:13px}
+label{font-weight:650;display:block;margin:12px 0 7px}input[type=file]{max-width:100%;border:1px dashed #9fb4c3;padding:11px;border-radius:9px}
+button,.action{display:inline-block;background:#176084;color:white;border:0;border-radius:9px;padding:11px 15px;text-decoration:none;cursor:pointer;font-size:15px;margin:5px 8px 5px 0}
+a{color:#12618c}button:hover,.action:hover{background:#0f4463}button:focus-visible,a:focus-visible{outline:3px solid #e5aa35;outline-offset:3px}
+.muted{color:#637a89}.result{border:1px solid #d7e2ed;border-radius:12px;padding:16px;background:#fbfdff}
+.big{font-size:28px;font-weight:750}.error{color:#9e2944}.ok{color:#166441}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{border-bottom:1px solid #e4eaf0;text-align:left;padding:9px}th{background:#eef5fa}td:not(:first-child),th:not(:first-child){text-align:right}
+.note{font-size:14px;color:#506b7f}.scroll{overflow-x:auto}
+</style></head><body>
+<header><strong>VTV Acro Jurycoach</strong> &nbsp; <a href="./">Terug naar videoanalyse</a></header>
+<main><h1>ByteTrack tegenover BoT-SORT + ReID</h1>
+<p class="sub">Aparte proef voor <strong>Js 9-9.mp4</strong> · Duo · startselectie 00:50 · twee vaste gymnasten</p>
+<div class="pills"><span class="pill">Variant A: ByteTrack</span><span class="pill">Variant B: BoT-SORT met ReID</span><span class="pill">Zelfde YOLO-detector</span><span class="pill">Privévideo blijft lokaal</span></div>
+
+<section class="panel"><h2>1. Voer beide trackers lokaal uit</h2>
+<p>De twee modellen draaien niet op deze GitHub Pages-website. Download de proefbestanden en leg ze samen met jouw video op een Windows-computer met Python 3.11 of 3.12. Start daarna <code>start_windows.bat</code>. Er is internet nodig om de AI te installeren.</p>
+<p><a class="action" download href="tests/vergelijk_trackers.py">Download trackingprogramma</a>
+<a class="action" download href="tests/start_windows.bat">Download Windows-startbestand</a>
+<a href="tests/LEESMIJ.md" target="_blank" rel="noopener">Uitgebreide uitleg</a></p>
+<p class="note">Klik tijdens de startselectie gymnast 1 en gymnast 2 aan, precies zoals in Jurycoach. Na afloop staan er twee CSV-bestanden in de map <code>tracker-resultaten</code>. De beoordeling van correcte identiteit na overlap blijft een afzonderlijke handmatige controle. De foto en video's worden niet naar GitHub geüpload.</p></section>
+
+<section class="panel"><h2>2. Laad de twee meetbestanden in</h2>
+<div class="grid">
+<div><label for="byte">ByteTrack_metingen.csv</label><input type="file" id="byte" accept=".csv,text/csv"></div>
+<div><label for="bot">BoT-SORT_ReID_metingen.csv</label><input type="file" id="bot" accept=".csv,text/csv"></div>
+<div><label for="old">Optioneel: VTV_Acro_Trainingsanalyse_v126.json</label><input type="file" id="old" accept=".json,application/json"></div>
+</div><p><button id="calculate" type="button">Vergelijk resultaten</button></p>
+<p id="status" class="muted" role="status">Er zijn nog geen trackerresultaten geladen.</p>
+</section>
+
+<section class="panel" id="results" hidden><h2>3. Vergelijking op dezelfde testvideo</h2>
+<div class="grid" id="cards"></div>
+<p id="comparison" class="note"></p>
+<div class="scroll"><table><thead><tr><th>Beoordeling</th><th>ByteTrack</th><th>BoT-SORT + ReID</th></tr></thead><tbody id="metrics"></tbody></table></div>
+<p class="note">Een track-ID dat terugkomt is <strong>geen bewijs</strong> dat de juiste gymnast is gevolgd. Controleer op de lokaal opgeslagen voorbeeldbeelden of een trainer wordt meegeteld, of nummers wisselen en of beide echte gymnasten zichtbaar zijn. Zet jouw beoordelingen in de CSV-kolommen <code>controle_echt_dezelfde_2</code>, <code>trainer_ten_onrechte_gevolgd</code> en <code>persoonswisseling</code>, en laad de bestanden opnieuw in.</p>
+</section>
+
+<section class="panel"><h2>Wat moet deze proef aantonen?</h2>
+<p>We willen de persoonstracking verbeteren vóór we de KNGU-elementen opnieuw proberen te herkennen. De uitvoer moet vooral aangeven of de twee aangewezen gymnasten hun nummer behouden, of ze verdwijnen tijdens een heffing en of een begeleider voorrang krijgt.</p>
+<p class="note">Nulmeting uit eerdere analyse: Jurycoach v126 selecteerde bij circa 8% van 300 meetmomenten twee poses, maar gebruikte toen het volledige beeld en een ander posemodel. De trackers mogen daarom alleen rechtstreeks onderling op dezelfde videoframes worden vergeleken. Een officiële jurywaardering levert deze proef niet op.</p>
+</section></main>
+<script>
+const $=id=>document.getElementById(id);
+function safe(t){return String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]))}
+function read(file){return file.text()}
+function csvRows(raw){
+ const lines=raw.replace(/^\uFEFF/,'').replace(/\r\n/g,'\n').replace(/\r/g,'\n').split('\n').filter(x=>x.trim());
+ if(!lines.length)throw Error('CSV is leeg.');
+ const delim=lines[0].includes(';')?';':',';
+ function parse(line){
+  let out=[],part='',quoted=false;
+  for(let i=0;i<line.length;i++){const c=line[i];
+   if(c==='"'&&quoted&&line[i+1]==='"'){part+='"';i++}
+   else if(c==='"')quoted=!quoted;
+   else if(c===delim&&!quoted){out.push(part);part=''}
+   else part+=c}
+  out.push(part);return out;
+ }
+ const heads=parse(lines[0]);
+ return lines.slice(1).map(l=>{const values=parse(l),row={};heads.forEach((h,i)=>row[h.trim()]=values[i]??'');return row});
+}
+const asBool=x=>['ja','yes','1','true','j','y'].includes(String(x??'').trim().toLowerCase());
+const checked=x=>['ja','yes','1','true','j','y','nee','no','0','false','n'].includes(String(x??'').trim().toLowerCase());
+function metrics(rows){
+ if(!rows.length)throw Error('Geen meetpunten.');
+ for(const h of ['tijd_s','gymnast_1_ID_zichtbaar','gymnast_2_ID_zichtbaar','beide_geselecteerde_IDs'])
+  if(!(h in rows[0]))throw Error('Ontbrekende kolom '+h);
+ const yes=rows.filter(r=>asBool(r.beide_geselecteerde_IDs)).length;
+ const known=rows.filter(r=>checked(r.controle_echt_dezelfde_2));
+ const trainer=rows.filter(r=>checked(r.trainer_ten_onrechte_gevolgd));
+ const switches=rows.filter(r=>checked(r.persoonswisseling));
+ return {rows,all:rows.length,both:yes,one:rows.filter(r=>Number(r.gymnast_1_ID_zichtbaar)+Number(r.gymnast_2_ID_zichtbaar)===1).length,
+ none:rows.filter(r=>!asBool(r.gymnast_1_ID_zichtbaar)&&!asBool(r.gymnast_2_ID_zichtbaar)).length,
+ manuallyKnown:known.length,manuallyCorrect:known.filter(r=>asBool(r.controle_echt_dezelfde_2)).length,
+ trainerKnown:trainer.length,trainerFaults:trainer.filter(r=>asBool(r.trainer_ten_onrechte_gevolgd)).length,
+ switchesKnown:switches.length,switches:switches.filter(r=>asBool(r.persoonswisseling)).length,
+ times:rows.map(r=>Number(r.tijd_s))}
+}
+function percent(a,n){return n?((100*a/n).toFixed(1)+'%'):'n.v.t.'}
+function cell(a,b){return '<tr><td>'+safe(a)+'</td><td>'+safe(String(b[0]))+'</td><td>'+safe(String(b[1]))+'</td></tr>'}
+$('calculate').addEventListener('click',async()=>{
+ try{
+  const files=[$('byte').files[0],$('bot').files[0]];
+  if(files.some(f=>!f))throw Error('Kies beide CSV-bestanden.');
+  const two=await Promise.all(files.map(async f=>metrics(csvRows(await read(f)))));
+  const [a,b]=two;
+  if(a.all!==b.all||a.times.some((t,i)=>Math.abs(t-b.times[i])>.10))
+   throw Error('De twee CSV-bestanden bevatten niet dezelfde meetmomenten. Controleer starttijd en FPS.');
+  let baseline='';
+  if($('old').files.length){
+   const old=JSON.parse(await read($('old').files[0]));
+   const frames=old.frames||[];
+   if(frames.length)baseline=' In de v126-export zijn '+frames.length+' meetpunten aanwezig. Dit is een andere detector en geen directe trackerbenchmark.';
+  }
+  $('cards').innerHTML=two.map((m,i)=>'<div class="result"><strong>'+['ByteTrack','BoT-SORT + ReID'][i]+'</strong><div class="big">'+percent(m.both,m.all)+'</div><div class="muted">Beide oorspronkelijke track-ID’s zichtbaar op '+m.both+' van '+m.all+' meetpunten</div></div>').join('');
+  $('metrics').innerHTML=[
+    cell('Beide oorspronkelijke track-ID’s aanwezig',two.map(m=>m.both+' / '+m.all)),
+    cell('Precies één start-ID aanwezig',two.map(m=>m.one)),
+    cell('Geen start-ID aanwezig',two.map(m=>m.none)),
+    cell('Echte duo-identiteit bevestigd (handmatig)',two.map(m=>m.manuallyCorrect+' / '+m.manuallyKnown)),
+    cell('Trainer ten onrechte gevolgd (handmatig)',two.map(m=>m.trainerFaults+' / '+m.trainerKnown)),
+    cell('Persoonswisseling (handmatig)',two.map(m=>m.switches+' / '+m.switchesKnown))
+  ].join('');
+  $('comparison').textContent='De twee trackers zijn vergeleken op '+a.all+' overeenkomstige meetmomenten, van '+a.times[0].toFixed(1)+' tot '+a.times.at(-1).toFixed(1)+' seconden.'+baseline;
+  $('results').hidden=false;
+  $('status').textContent='CSV-bestanden succesvol vergeleken; ontbrekende handmatige controles blijven expliciet zichtbaar.';
+ }catch(e){$('results').hidden=true;$('status').textContent='Vergelijking mislukt: '+e.message}
+});
+</script></body></html>
