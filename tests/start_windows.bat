@@ -19,5 +19,10 @@ if errorlevel 1 (
  pause
  exit /b 1
 )
-py vergelijk_trackers.py --video "Js 9-9.mp4" --reference "VTV_Acro_Trainingsanalyse_v126.json" --start 50 --end 149.9 --fps 5 --snapshots
+if exist "VTV_Acro_Trainingsanalyse_v126.json" (
+ py vergelijk_trackers.py --video "Js 9-9.mp4" --reference "VTV_Acro_Trainingsanalyse_v126.json" --start 50 --end 149.9 --fps 5 --snapshots
+) else (
+ echo Geen v126-referentie aanwezig: trackers worden wel onderling vergeleken.
+ py vergelijk_trackers.py --video "Js 9-9.mp4" --start 50 --end 149.9 --fps 5 --snapshots
+)
 pause
