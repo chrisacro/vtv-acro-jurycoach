@@ -1,0 +1,38 @@
+name: Publiceer Jurycoach
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: true
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Installeer MediaPipe
+        run: npm install --no-audit --no-fund
+      - name: Download officieel posemodel
+        run: |
+          mkdir -p vendor
+          curl --fail --location --retry 4 --retry-delay 3 --output vendor/pose_landmarker_lite.task https://storage.googleapis.com/mediapipe-models/pose_landmarker/pose_landmarker_lite/float16/1/pose_landmarker_lite.task
+          test $(wc -c < vendor/pose_landmarker_lite.task) -gt 100000
+      - name: Bouw de website met lokale AI-bestanden
+        run: npm run build
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+      - id: deployment
+        uses: actions/deploy-pages@v4
