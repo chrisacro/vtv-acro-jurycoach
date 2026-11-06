@@ -1,5 +1,5 @@
 import fs from 'node:fs';import path from 'node:path';
-const base='node_modules/@mediapipe/tasks-vision/vision_bundle.cjs';
+const base='node_modules/@mediapipe/tasks-vision/vision_bundle.cjs;
 const out='dist';fs.mkdirSync(out,{recursive:true});fs.mkdirSync(path.join(out,'vendor'),{recursive:true});
 fs.copyFileSync('index.html',path.join(out,'index.html'));
 fs.writeFileSync(path.join(out,'.nojekyll'),'');
