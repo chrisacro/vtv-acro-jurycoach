@@ -1,4 +1,4 @@
-import fsimport fs from 'node:fs';
+import fs from 'node:fs';
 import path from 'node:path';
 
 const base = 'node_modules/@mediapipe/tasks-vision';
