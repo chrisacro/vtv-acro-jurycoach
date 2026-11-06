@@ -1,0 +1,11 @@
+import fs from 'node:fs';import path from 'node:path';
+const base='node_modules/@mediapipe/tasks-vision';
+const out='dist';fs.mkdirSync(out,{recursive:true});fs.mkdirSync(path.join(out,'vendor'),{recursive:true});
+fs.copyFileSync('index.html',path.join(out,'index.html'));
+fs.writeFileSync(path.join(out,'.nojekyll'),'');
+fs.copyFileSync(path.join(base,'vision_bundle.js'),path.join(out,'vendor/vision_bundle.js'));
+fs.cpSync(path.join(base,'wasm'),path.join(out,'vendor/wasm'),{recursive:true});
+const model='vendor/pose_landmarker_lite.task';
+if(!fs.existsSync(model))throw new Error('Model ontbreekt: '+model+'; download eerst het officiële model');
+fs.copyFileSync(model,path.join(out,model));
+console.log('Website gebouwd in dist/');
